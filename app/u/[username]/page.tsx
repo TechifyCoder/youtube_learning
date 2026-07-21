@@ -138,14 +138,22 @@ export default async function PublicProfilePage({ params }: { params: { username
           )}
         </div>
 
-        {/* Footer */}
-        <div className="text-center pt-12 border-t border-white/5">
-          <a href="/" className="inline-flex items-center gap-2 text-sm text-[--text-secondary] hover:text-white transition-colors">
-            <div className="w-5 h-5 rounded bg-purple-600 flex items-center justify-center text-white font-bold text-[10px]">
-              L
-            </div>
-            Learning with LearnLoop
-          </a>
+        {/* CTA Footer */}
+        <div className="text-center pt-16 pb-8">
+          <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-8 max-w-2xl mx-auto space-y-4">
+            <h3 className="text-xl font-heading font-bold text-white">Want to track your own learning journey?</h3>
+            <p className="text-[--text-secondary]">Join LearnLoop to import YouTube playlists, track your watch time, and earn certificates.</p>
+            <a 
+              href={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login`} 
+              className="inline-block mt-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded-xl transition-colors"
+            >
+              Start Learning for Free
+            </a>
+          </div>
+          
+          <div className="mt-12 text-sm text-[--text-disabled]">
+            Powered by LearnLoop
+          </div>
         </div>
       </div>
     </div>

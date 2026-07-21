@@ -7,6 +7,9 @@ import { Sidebar } from '@/components/layout/Sidebar'
 // Contains: Sidebar (desktop) + main content area + orb bg
 // ─────────────────────────────────────────────────────────────
 
+import { db } from '@/lib/db'
+import { playlists } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { StreakRecoveryModal } from '@/components/dashboard/StreakRecoveryModal'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 
@@ -17,9 +20,19 @@ export default async function DashboardLayout({
 }) {
   const session = await auth()
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect('/login')
   }
+
+  // Fetch user's courses (playlists) to show in sidebar
+  const userPlaylists = await db
+    .select({
+      id: playlists.id,
+      title: playlists.title,
+    })
+    .from(playlists)
+    .where(eq(playlists.userId, session.user.id))
+    .orderBy(desc(playlists.createdAt))
 
   return (
     <div className="flex h-screen bg-[--bg-primary] overflow-hidden">
@@ -32,16 +45,16 @@ export default async function DashboardLayout({
       </div>
 
       {/* Desktop Sidebar */}
-      <Sidebar user={session.user} />
+      <Sidebar user={session.user} playlists={userPlaylists} />
 
       {/* Main content area */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-hidden flex flex-col min-h-0">
 
         {/* Mobile top navbar */}
         <MobileNavbar user={session.user} />
 
-        {/* Page content */}
-        <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-6">
+        {/* Page content — full width, each page controls its own max-width */}
+        <div className="flex-1 w-full min-h-0 overflow-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
           {children}
         </div>
 

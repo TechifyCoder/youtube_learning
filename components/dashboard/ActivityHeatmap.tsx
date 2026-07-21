@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { GlassCard } from '@/components/common/GlassCard'
 import { subDays, format, startOfWeek, addDays, getDay } from 'date-fns'
 
@@ -16,6 +16,21 @@ const TOTAL_DAYS = 364
 export function ActivityHeatmap() {
   const [logs, setLogs] = useState<ActivityLog[]>([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<string>('yearly')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Handle outside click for dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     async function fetchActivity() {
@@ -34,35 +49,38 @@ export function ActivityHeatmap() {
     fetchActivity()
   }, [])
 
-  const { grid, monthLabels } = useMemo(() => {
+  const { grid, monthLabels, availableMonths } = useMemo(() => {
     const today = new Date()
-    // Find the start date (364 days ago)
     const startDate = subDays(today, TOTAL_DAYS - 1)
     
-    // We want the grid to start on a Sunday (or whatever startOfWeek gives)
-    // To keep it simple, we just build an array of dates from startDate to today
     const days: { date: Date; log?: ActivityLog }[] = []
-    
-    // Create a map for quick lookup
     const logMap = new Map(logs.map(log => [log.date, log]))
+    
+    const availableMonthOptions: { label: string; value: string }[] = []
+    const monthsSet = new Set<string>()
 
     for (let i = 0; i < TOTAL_DAYS; i++) {
       const d = addDays(startDate, i)
       const dateStr = d.toISOString().split('T')[0]!
+      
+      const monthKey = format(d, 'yyyy-MM')
+      if (!monthsSet.has(monthKey)) {
+        monthsSet.add(monthKey)
+        availableMonthOptions.push({ label: format(d, 'MMMM yyyy'), value: monthKey })
+      }
+
       days.push({
         date: d,
         log: logMap.get(dateStr),
       })
     }
 
-    // Group into weeks (columns)
     const weeks: typeof days[] = []
     let currentWeek: typeof days = []
     
-    // To align properly, we might need empty slots at the beginning if startDate is not Sunday
     const startDayOfWeek = getDay(startDate)
     for (let i = 0; i < startDayOfWeek; i++) {
-      currentWeek.push({ date: subDays(startDate, startDayOfWeek - i) }) // padding
+      currentWeek.push({ date: subDays(startDate, startDayOfWeek - i) })
     }
 
     days.forEach(day => {
@@ -74,7 +92,6 @@ export function ActivityHeatmap() {
     })
 
     if (currentWeek.length > 0) {
-      // pad the end if necessary
       while (currentWeek.length < 7) {
         const lastDate = currentWeek[currentWeek.length - 1]!.date
         currentWeek.push({ date: addDays(lastDate, 1) })
@@ -82,20 +99,44 @@ export function ActivityHeatmap() {
       weeks.push(currentWeek)
     }
 
-    // Generate month labels
+    let finalWeeks = weeks
+    if (viewMode !== 'yearly') {
+      finalWeeks = weeks.filter(week => 
+        week.some(day => format(day.date, 'yyyy-MM') === viewMode)
+      )
+    }
+
     const labels: { month: string; colIndex: number }[] = []
     let currentMonth = -1
-    weeks.forEach((week, index) => {
-      // Use the first day of the week to determine the month
-      const month = week[0]!.date.getMonth()
+    finalWeeks.forEach((week, index) => {
+      const targetDay = viewMode !== 'yearly' 
+        ? week.find(d => format(d.date, 'yyyy-MM') === viewMode) || week[0]!
+        : week[0]!
+        
+      const month = targetDay.date.getMonth()
       if (month !== currentMonth) {
-        labels.push({ month: format(week[0]!.date, 'MMM'), colIndex: index })
+        labels.push({ month: format(targetDay.date, 'MMM'), colIndex: index })
         currentMonth = month
       }
     })
 
-    return { grid: weeks, monthLabels: labels }
-  }, [logs])
+    return { 
+      grid: finalWeeks, 
+      monthLabels: labels, 
+      availableMonths: availableMonthOptions.reverse() 
+    }
+  }, [logs, viewMode])
+
+  // Auto-scroll to the rightmost edge to show the current active month (similar to GitHub)
+  useEffect(() => {
+    if (!loading && scrollContainerRef.current) {
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth
+        }
+      })
+    }
+  }, [loading, grid, viewMode])
 
   const getColorClass = (minutes: number) => {
     if (minutes === 0) return 'bg-white/[0.04]'
@@ -106,11 +147,51 @@ export function ActivityHeatmap() {
   }
 
   return (
-    <GlassCard padding="md" variant="subtle" className="w-full overflow-hidden">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-heading font-semibold text-lg text-[--text-primary]">
-          Learning Activity
-        </h3>
+    <GlassCard padding="md" variant="subtle" className="w-full overflow-hidden relative">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+        <div className="flex items-center gap-4">
+          <h3 className="font-heading font-semibold text-lg text-[--text-primary]">
+            Learning Activity
+          </h3>
+          
+          {/* Custom Dark Theme Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-between gap-2 w-36 bg-black/20 border border-white/10 rounded-md text-xs px-3 py-1.5 text-[--text-secondary] outline-none hover:border-purple-500/50 transition-colors"
+            >
+              <span className="truncate">
+                {viewMode === 'yearly' ? 'Last Year' : availableMonths.find(m => m.value === viewMode)?.label}
+              </span>
+              <svg className={`w-3 h-3 opacity-50 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-[#1A1228] border border-white/10 rounded-md shadow-2xl overflow-hidden z-50 py-1">
+                <button
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors ${viewMode === 'yearly' ? 'text-purple-400 bg-purple-500/10 font-medium' : 'text-[--text-secondary]'}`}
+                  onClick={() => { setViewMode('yearly'); setIsDropdownOpen(false); }}
+                >
+                  Last Year
+                </button>
+                <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                  {availableMonths.map(m => (
+                    <button
+                      key={m.value}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors ${viewMode === m.value ? 'text-purple-400 bg-purple-500/10 font-medium' : 'text-[--text-secondary]'}`}
+                      onClick={() => { setViewMode(m.value); setIsDropdownOpen(false); }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
         <div className="flex items-center gap-2 text-xs text-[--text-secondary]">
           <span>Less</span>
           <div className="w-2.5 h-2.5 rounded-sm bg-white/[0.04]" />
@@ -122,8 +203,8 @@ export function ActivityHeatmap() {
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
-        <div className="min-w-[800px]">
+      <div ref={scrollContainerRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
+        <div className={viewMode === 'yearly' ? 'min-w-[800px]' : 'min-w-fit'}>
           {/* Month labels */}
           <div className="flex relative h-5 mb-1 ml-6 text-xs text-[--text-secondary]">
             {monthLabels.map(({ month, colIndex }) => (

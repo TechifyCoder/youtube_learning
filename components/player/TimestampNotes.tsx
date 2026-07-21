@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Download, Loader2 } from 'lucide-react'
-import { formatTime } from '@/lib/schedule'
 import { toast } from 'react-hot-toast'
-import { cn } from '@/lib/utils'
+import { cn, formatTimestamp } from '@/lib/utils'
 
 interface Note {
   id: string
@@ -97,7 +96,7 @@ export function TimestampNotes({ videoId, videoTitle, currentPlayhead, onSeek }:
 
   const handleExport = () => {
     const text = `${videoTitle} — Notes\n\n` + 
-      notes.map(n => `[${formatTime(n.timestampSeconds)}] ${n.content}`).join('\n')
+      notes.map(n => `[${formatTimestamp(n.timestampSeconds)}] ${n.content}`).join('\n')
     
     const blob = new Blob([text], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -157,7 +156,7 @@ export function TimestampNotes({ videoId, videoTitle, currentPlayhead, onSeek }:
                   onClick={() => onSeek(note.timestampSeconds)}
                   className="shrink-0 text-xs font-mono text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded h-fit hover:bg-purple-500/20 transition-colors mt-0.5"
                 >
-                  {formatTime(note.timestampSeconds)}
+                  {formatTimestamp(note.timestampSeconds)}
                 </button>
                 <p className="flex-1 text-sm text-[--text-secondary] whitespace-pre-wrap leading-relaxed">
                   {note.content}
@@ -186,7 +185,7 @@ export function TimestampNotes({ videoId, videoTitle, currentPlayhead, onSeek }:
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-white/[0.1] text-sm text-[--text-secondary] hover:text-[--text-primary] hover:bg-white/[0.02] hover:border-white/[0.2] transition-all"
             >
               <Plus className="w-4 h-4" />
-              Add Note at {formatTime(currentPlayhead)}
+              Add Note at {formatTimestamp(currentPlayhead)}
             </motion.button>
           ) : (
             <motion.div
@@ -195,7 +194,7 @@ export function TimestampNotes({ videoId, videoTitle, currentPlayhead, onSeek }:
               className="space-y-3"
             >
               <div className="flex items-center gap-2 text-xs text-purple-400 mb-2">
-                Taking note at {formatTime(capturedTime ?? 0)}
+                Taking note at {formatTimestamp(capturedTime ?? 0)}
               </div>
               <textarea
                 ref={inputRef}

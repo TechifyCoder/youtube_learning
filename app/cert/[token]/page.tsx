@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { certificates, users, playlists, videos } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { differenceInDays } from 'date-fns'
-import { CertificateCanvas } from '@/components/certificate/CertificateCanvas'
+import { CertificateTemplate } from '@/components/certificate/CertificateTemplate'
 import type { Metadata } from 'next'
 
 export async function generateMetadata({ params }: { params: { token: string } }): Promise<Metadata> {
@@ -67,17 +67,36 @@ export default async function PublicCertificatePage({ params }: { params: { toke
           </p>
         </div>
 
-        <div className="w-full">
-          <CertificateCanvas 
-            userName={certData.user.name || 'Anonymous Learner'}
-            courseTitle={certData.playlist.title}
-            totalHours={Number(certData.cert.totalHours)}
-            videosCount={count.length}
-            daysTaken={daysTaken}
-            issueDate={certData.cert.issuedAt}
-            shareToken={certData.cert.shareToken}
-          />
-        </div>
+          <div className="w-full flex justify-center overflow-hidden bg-black/20 rounded-2xl p-4 md:p-8 border border-white/5">
+            {/* Desktop Preview */}
+            <div className="relative origin-top hidden md:block" style={{ width: '840px', height: '593px' }}>
+              <div className="absolute top-0 left-0 transform scale-[0.7] origin-top-left shadow-2xl">
+                <CertificateTemplate 
+                  userName={certData.user.name || 'Anonymous Learner'}
+                  courseTitle={certData.playlist.title}
+                  totalHours={Number(certData.cert.totalHours)}
+                  videosCount={count.length}
+                  daysTaken={daysTaken}
+                  issueDate={certData.cert.issuedAt}
+                  shareToken={certData.cert.shareToken}
+                />
+              </div>
+            </div>
+            {/* Mobile Preview */}
+            <div className="relative origin-top block md:hidden" style={{ width: '300px', height: '212px' }}>
+              <div className="absolute top-0 left-0 transform scale-[0.25] origin-top-left shadow-2xl">
+                <CertificateTemplate 
+                  userName={certData.user.name || 'Anonymous Learner'}
+                  courseTitle={certData.playlist.title}
+                  totalHours={Number(certData.cert.totalHours)}
+                  videosCount={count.length}
+                  daysTaken={daysTaken}
+                  issueDate={certData.cert.issuedAt}
+                  shareToken={certData.cert.shareToken}
+                />
+              </div>
+            </div>
+          </div>
 
         <div>
           <a href="/" className="text-sm text-[--text-secondary] hover:text-white transition-colors">

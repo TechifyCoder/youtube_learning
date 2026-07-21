@@ -13,7 +13,7 @@ export default auth((req: NextRequest & { auth: Awaited<ReturnType<typeof auth>>
   const session = req.auth
 
   // Public routes that don't need auth
-  const publicPaths = ['/login', '/api/auth']
+  const publicPaths = ['/login', '/api/auth', '/u', '/cert']
   const isPublic = publicPaths.some((p) => pathname.startsWith(p))
 
   if (!session && !isPublic) {
