@@ -261,6 +261,7 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
           ) : (
             <TimestampNotes 
               videoId={video.id}
+              youtubeVideoId={video.youtubeVideoId}
               videoTitle={video.title}
               currentPlayhead={startSeconds}
               onSeek={(seconds) => {

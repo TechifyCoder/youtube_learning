@@ -8,6 +8,7 @@ const noteSchema = z.object({
   videoId: z.string().uuid(),
   content: z.string().min(1).max(2000),
   timestampSeconds: z.number().int().min(0),
+  endTimestampSeconds: z.number().int().min(0).optional().nullable(),
 })
 
 export async function GET(req: Request) {
@@ -37,10 +38,9 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export const POST = auth(async (req: any) => {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
+    if (!req.auth?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -51,13 +51,14 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Invalid input', details: parsed.error.flatten() }, { status: 400 })
     }
 
-    const { videoId, content, timestampSeconds } = parsed.data
+    const { videoId, content, timestampSeconds, endTimestampSeconds } = parsed.data
 
     const [newNote] = await db.insert(notes).values({
-      userId: session.user.id,
+      userId: req.auth.user.id,
       videoId,
       content,
       timestampSeconds,
+      endTimestampSeconds: endTimestampSeconds ?? null,
     }).returning()
 
     return Response.json(newNote)
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
     console.error('[POST /api/notes]', error)
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
+})
 
 export async function DELETE(req: Request) {
   try {

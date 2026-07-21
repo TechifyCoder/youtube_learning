@@ -126,6 +126,7 @@ export const notes = pgTable('notes', {
   userId:           uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   content:          text('content').notNull(),
   timestampSeconds: integer('timestamp_seconds').notNull(),
+  endTimestampSeconds: integer('end_timestamp_seconds'),
   createdAt:        timestamp('created_at').defaultNow().notNull(),
 })
 

@@ -30,6 +30,8 @@ export default async function ActivityPage() {
     .from(users)
     .where(eq(users.id, session.user.id))
 
+  if (!user) return redirect('/login')
+
   // Fetch last 364 days of activity
   const oneYearAgo = subDays(new Date(), 364)
   const logs = await db
