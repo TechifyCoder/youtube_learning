@@ -34,9 +34,9 @@ export default async function ProfilePage() {
         <div className="space-y-6">
           <div className="bg-[--bg-secondary] border border-white/5 p-6 rounded-xl">
             <ProfileForm 
-              initialUsername={dbUser.username || ''} 
-              initialBio={dbUser.bio || ''} 
-              initialIsPublic={dbUser.isPublic} 
+              initialUsername={dbUser?.username || ''} 
+              initialBio={dbUser?.bio || ''} 
+              initialIsPublic={dbUser?.isPublic || false} 
             />
           </div>
         </div>
@@ -45,23 +45,23 @@ export default async function ProfilePage() {
           <div className="bg-[--bg-secondary] border border-white/5 p-6 rounded-xl flex flex-col items-center text-center space-y-4">
             <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 p-1">
               <div className="w-full h-full rounded-full overflow-hidden bg-[--bg-primary]">
-                {dbUser.avatarUrl ? (
+                {dbUser?.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={dbUser.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-white">
-                    {dbUser.name?.[0] || 'U'}
+                    {dbUser?.name?.[0] || 'U'}
                   </div>
                 )}
               </div>
             </div>
             
             <div>
-              <h2 className="text-xl font-bold text-white">{dbUser.name}</h2>
-              <p className="text-[--text-secondary] text-sm">{dbUser.email}</p>
+              <h2 className="text-xl font-bold text-white">{dbUser?.name}</h2>
+              <p className="text-[--text-secondary] text-sm">{dbUser?.email}</p>
             </div>
 
-            {dbUser.isPublic && dbUser.username && (
+            {dbUser?.isPublic && dbUser?.username && (
               <a 
                 href={`/u/${dbUser.username}`} 
                 target="_blank" 

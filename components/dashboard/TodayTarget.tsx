@@ -62,7 +62,7 @@ export function TodayTarget({ todaySchedule, videos, playlistId }: TodayTargetPr
             </p>
           </div>
           <Button 
-            variant="outline" 
+            variant="default" 
             onClick={() => router.push(`/playlist/${playlistId}`)}
             className="w-full bg-white/[0.02]"
           >
@@ -75,8 +75,9 @@ export function TodayTarget({ todaySchedule, videos, playlistId }: TodayTargetPr
 
   // Determine if behind (if todaySchedule date is strictly < today, but this component is supposed to show *today's* target or the first uncompleted one)
   // Let's assume todaySchedule passed is the earliest uncompleted day.
-  const todayStr = new Date().toISOString().split('T')[0]
-  const isBehind = todaySchedule.date < todayStr!
+  const todayStr = new Date().toISOString().split('T')[0]!
+  const scheduleDateStr = new Date(todaySchedule.date).toISOString().split('T')[0]!
+  const isBehind = scheduleDateStr < todayStr
 
   return (
     <GlassCard padding="lg" variant="elevated" className={`h-full relative overflow-hidden ${isBehind ? 'border-red-500/20 bg-red-500/5' : 'border-blue-500/20 bg-blue-500/5'}`}>

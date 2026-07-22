@@ -58,8 +58,8 @@ export async function POST(req: Request) {
         totalVideos: data.totalVideos,
         commitmentDays: data.commitmentDays,
         hoursPerDay: data.hoursPerDay ? data.hoursPerDay.toString() : null,
-        startDate: new Date(data.startDate).toISOString().split('T')[0],
-        deadline: new Date(data.deadline).toISOString().split('T')[0],
+        startDate: new Date(data.startDate).toISOString().split('T')[0]!,
+        deadline: new Date(data.deadline).toISOString().split('T')[0]!,
       })
       .returning()
 
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
       await db.insert(scheduleDays).values({
         playlistId: insertedPlaylist.id,
         dayNumber: day.dayNumber,
-        date: day.date,
+        date: day.date.toISOString().split('T')[0]!,
         videoIds: day.videoIds,
         targetMinutes: day.targetMinutes,
         isCompleted: false,

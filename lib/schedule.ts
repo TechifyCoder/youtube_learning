@@ -43,7 +43,7 @@ export function splitLongVideo(video: Video, targetSeconds: number): VideoPart[]
         partNumber: 1,
         startSeconds: 0,
         endSeconds: video.durationSeconds,
-        durationSeconds: video.durationSeconds,
+        status: 'not_started',
       },
     ]
   }
@@ -59,7 +59,7 @@ export function splitLongVideo(video: Video, targetSeconds: number): VideoPart[]
       partNumber: i + 1,
       startSeconds: start,
       endSeconds: end,
-      durationSeconds: end - start,
+      status: 'not_started',
     })
   }
 
@@ -90,7 +90,7 @@ export function generateSchedule(videos: Video[], commitmentDays: number, startD
         units.push({
           videoId: video.id,
           title: `${video.title} (Part ${part.partNumber})`,
-          duration: part.durationSeconds
+          duration: part.endSeconds - part.startSeconds
         })
       })
     } else {
@@ -112,7 +112,7 @@ export function generateSchedule(videos: Video[], commitmentDays: number, startD
   const getDateForDay = (offset: number) => {
     const d = new Date(startDate)
     d.setDate(d.getDate() + offset)
-    return d.toISOString().split('T')[0]
+    return d
   }
 
   for (let i = 0; i < units.length; i++) {
@@ -126,7 +126,7 @@ export function generateSchedule(videos: Video[], commitmentDays: number, startD
     if (currentDaySeconds >= targetSecondsPerDay || i === units.length - 1) {
       schedule.push({
         dayNumber: currentDayIndex + 1,
-        date: getDateForDay(currentDayIndex)!,
+        date: getDateForDay(currentDayIndex),
         videoIds: Array.from(new Set(currentDayVideoIds)), // unique video ids for this day
         targetMinutes: Math.round(currentDaySeconds / 60),
         isCompleted: false,

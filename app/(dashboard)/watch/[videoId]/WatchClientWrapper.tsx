@@ -1,16 +1,18 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useWatchProgress } from '@/hooks/useWatchProgress'
 import { YouTubePlayer } from '@/components/player/YouTubePlayer'
 import { ProgressBar } from '@/components/player/ProgressBar'
 import { VideoParts } from '@/components/player/VideoParts'
 import { TranscriptChat } from '@/components/player/TranscriptChat'
 import { TimestampNotes } from '@/components/player/TimestampNotes'
+import { QuizTriggerBanner } from '@/components/quiz/QuizTriggerBanner'
+import { QuizModal } from '@/components/quiz/QuizModal'
 import { GlassCard } from '@/components/common/GlassCard'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, PlayCircle, StepForward, MessageSquare, GripVertical } from 'lucide-react'
+import { CheckCircle2, PlayCircle, StepForward, MessageSquare, GripVertical, Brain } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { slideInRight } from '@/lib/animations'
 import { toast } from 'react-hot-toast'
@@ -25,9 +27,12 @@ interface WatchClientWrapperProps {
 }
 
 export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts }: WatchClientWrapperProps) {
+  const searchParams = useSearchParams()
   const router = useRouter()
   const [showChatMobile, setShowChatMobile] = useState(false)
-  const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat')
+  const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'quiz'>(
+    searchParams.get('quiz') === 'true' ? 'quiz' : 'chat'
+  )
   const playerControlsRef = useRef<{ seekTo: (time: number) => void, play: () => void, pause: () => void, getCurrentTime: () => number } | null>(null)
   
   const {
@@ -46,6 +51,19 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
   // Resume logic
   const [startSeconds, setStartSeconds] = useState(0)
   const hasResumedRef = useRef(false)
+  
+  // Quiz logic
+  const [showQuizBanner, setShowQuizBanner] = useState(false)
+  const [showQuizModal, setShowQuizModal] = useState(searchParams.get('quiz') === 'true')
+  const hasTriggeredQuizRef = useRef(false)
+
+  useEffect(() => {
+    if (isComplete && !hasTriggeredQuizRef.current) {
+      setShowQuizBanner(true)
+      hasTriggeredQuizRef.current = true
+    }
+  }, [isComplete])
+
   
   useEffect(() => {
     if (!hasResumedRef.current && initialSegments.length > 0) {
@@ -131,7 +149,7 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
           {/* Mobile Chat Toggle */}
           <div className="lg:hidden shrink-0">
             <Button 
-              variant="outline" 
+              variant="default" 
               className="w-full bg-white/[0.02]"
               onClick={() => setShowChatMobile(!showChatMobile)}
             >
@@ -252,13 +270,24 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
           >
             Notes
           </button>
+          <button
+            onClick={() => setActiveTab('quiz')}
+            className={cn(
+              "flex-1 py-2 text-sm font-medium rounded-lg transition-all duration-150",
+              activeTab === 'quiz'
+                ? "bg-purple-600/80 text-white shadow-sm"
+                : "text-[--text-muted] hover:text-[--text-secondary] hover:bg-white/[0.04]"
+            )}
+          >
+            Quiz
+          </button>
         </div>
 
         {/* Panel content — fills remaining height */}
         <div className="flex-1 min-h-0 overflow-hidden">
           {activeTab === 'chat' ? (
             <TranscriptChat video={video} />
-          ) : (
+          ) : activeTab === 'notes' ? (
             <TimestampNotes 
               videoId={video.id}
               youtubeVideoId={video.youtubeVideoId}
@@ -269,9 +298,46 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
                 playerControlsRef.current?.play()
               }}
             />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-4">
+              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mb-4">
+                <Brain className="w-8 h-8 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-semibold">Practice What You Learned</h3>
+              <p className="text-muted-foreground text-sm max-w-sm">
+                Take a quick AI-generated quiz based on this video's transcript to reinforce your understanding.
+              </p>
+              <Button 
+                onClick={() => setShowQuizModal(true)} 
+                className="mt-6"
+                size="lg"
+              >
+                Start Quiz Now
+              </Button>
+            </div>
           )}
         </div>
       </motion.div>
+
+      <QuizTriggerBanner
+        isVisible={showQuizBanner}
+        onSkip={() => setShowQuizBanner(false)}
+        onStartQuiz={() => {
+          setShowQuizBanner(false)
+          setShowQuizModal(true)
+        }}
+      />
+      
+      {showQuizModal && (
+        <QuizModal
+          videoId={video.id}
+          playlistId={video.playlistId}
+          transcript={video.transcript || ''}
+          videoTitle={video.title}
+          onComplete={(score) => setShowQuizModal(false)}
+          onSkip={() => setShowQuizModal(false)}
+        />
+      )}
     </div>
   )
 }

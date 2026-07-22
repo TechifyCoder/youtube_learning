@@ -63,9 +63,8 @@ export async function POST(req: Request) {
     for (const day of schedule) {
       await db.insert(scheduleDays).values({
         playlistId: playlist.id,
-        userId,
         dayNumber: day.dayNumber,
-        date: day.date,
+        date: day.date.toISOString().split('T')[0]!,
         videoIds: day.videoIds,
         targetMinutes: day.targetMinutes,
         isCompleted: false,

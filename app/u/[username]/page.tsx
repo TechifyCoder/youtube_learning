@@ -94,11 +94,11 @@ export default async function PublicProfilePage({ params }: { params: { username
             <div className="text-sm text-[--text-secondary]">Hours Learned</div>
           </div>
           <div className="bg-[--bg-secondary] border border-white/5 rounded-xl p-6 text-center">
-            <div className="text-3xl font-heading font-bold text-white mb-1">{user.streakCount}</div>
+            <div className="text-3xl font-heading font-bold text-white mb-1">{user?.streakCount ?? 0}</div>
             <div className="text-sm text-[--text-secondary]">Current Streak</div>
           </div>
           <div className="bg-[--bg-secondary] border border-white/5 rounded-xl p-6 text-center">
-            <div className="text-3xl font-heading font-bold text-white mb-1">{user.longestStreak}</div>
+            <div className="text-3xl font-heading font-bold text-white mb-1">{user?.longestStreak ?? 0}</div>
             <div className="text-sm text-[--text-secondary]">Longest Streak</div>
           </div>
         </div>

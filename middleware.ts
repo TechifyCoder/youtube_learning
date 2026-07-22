@@ -8,7 +8,7 @@ import type { NextRequest } from 'next/server'
 // If not authenticated → redirect to /login.
 // ─────────────────────────────────────────────────────────────
 
-export default auth((req: NextRequest & { auth: Awaited<ReturnType<typeof auth>> }) => {
+export default auth((req) => {
   const { pathname } = req.nextUrl
   const session = req.auth
 

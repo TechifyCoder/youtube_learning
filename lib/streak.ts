@@ -5,7 +5,7 @@ import { addDays, differenceInCalendarDays, startOfDay } from 'date-fns'
 
 // Format date to YYYY-MM-DD for database
 export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0]
+  return date.toISOString().split('T')[0]!
 }
 
 export function isStreakAlive(lastActiveDateStr: string | null): boolean {

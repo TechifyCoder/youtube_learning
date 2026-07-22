@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { scheduleDays } from '@/lib/db/schema'
+import { scheduleDays, playlists } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 // ─────────────────────────────────────────────────────────────
@@ -19,11 +19,12 @@ export async function PATCH(
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Ensure we own the day
+    // Ensure we own the day by joining playlists
     const [day] = await db
-      .select()
+      .select({ id: scheduleDays.id })
       .from(scheduleDays)
-      .where(and(eq(scheduleDays.id, params.dayId), eq(scheduleDays.userId, session.user.id)))
+      .innerJoin(playlists, eq(scheduleDays.playlistId, playlists.id))
+      .where(and(eq(scheduleDays.id, params.dayId), eq(playlists.userId, session.user.id)))
       .limit(1)
 
     if (!day) {
@@ -35,7 +36,6 @@ export async function PATCH(
       .set({
         isCompleted: true,
         status: 'completed',
-        updatedAt: new Date(),
       })
       .where(eq(scheduleDays.id, params.dayId))
 

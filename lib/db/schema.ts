@@ -130,6 +130,31 @@ export const notes = pgTable('notes', {
   createdAt:        timestamp('created_at').defaultNow().notNull(),
 })
 
+// ─── Table: quiz_attempts ─────────────────────────────────────
+export const quizAttempts = pgTable('quiz_attempts', {
+  id:          uuid('id').primaryKey().defaultRandom(),
+  userId:      uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  videoId:     uuid('video_id').references(() => videos.id, { onDelete: 'cascade' }), // null for final quiz
+  playlistId:  uuid('playlist_id').references(() => playlists.id, { onDelete: 'cascade' }).notNull(),
+  quizType:    text('quiz_type').notNull(), // 'video' | 'final'
+  questions:   jsonb('questions').notNull(),
+  answers:     jsonb('answers').default([]),
+  score:       integer('score').default(0),
+  maxScore:    integer('max_score').default(100),
+  isComplete:  boolean('is_complete').default(false),
+  startedAt:   timestamp('started_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+})
+
+// ─── Table: coding_completions ────────────────────────────────
+export const codingCompletions = pgTable('coding_completions', {
+  id:             uuid('id').primaryKey().defaultRandom(),
+  userId:         uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  quizAttemptId:  uuid('quiz_attempt_id').references(() => quizAttempts.id, { onDelete: 'cascade' }).notNull(),
+  questionIndex:  integer('question_index').notNull(),
+  markedDoneAt:   timestamp('marked_done_at').defaultNow(),
+})
+
 // ─────────────────────────────────────────────────────────────
 // Relations (for Drizzle query API)
 // ─────────────────────────────────────────────────────────────
@@ -141,6 +166,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   activityLog:   many(activityLog),
   certificates:  many(certificates),
   notes:         many(notes),
+  quizAttempts:  many(quizAttempts),
+  codingCompletions: many(codingCompletions),
 }))
 
 export const playlistsRelations = relations(playlists, ({ one, many }) => ({
@@ -148,6 +175,7 @@ export const playlistsRelations = relations(playlists, ({ one, many }) => ({
   videos:       many(videos),
   scheduleDays: many(scheduleDays),
   certificates: many(certificates),
+  quizAttempts: many(quizAttempts),
 }))
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -155,6 +183,7 @@ export const videosRelations = relations(videos, ({ one, many }) => ({
   user:          one(users,     { fields: [videos.userId],     references: [users.id] }),
   watchProgress: many(watchProgress),
   notes:         many(notes),
+  quizAttempts:  many(quizAttempts),
 }))
 
 export const watchProgressRelations = relations(watchProgress, ({ one }) => ({
@@ -174,4 +203,16 @@ export const certificatesRelations = relations(certificates, ({ one }) => ({
 export const notesRelations = relations(notes, ({ one }) => ({
   user:  one(users,  { fields: [notes.userId],  references: [users.id] }),
   video: one(videos, { fields: [notes.videoId], references: [videos.id] }),
+}))
+
+export const quizAttemptsRelations = relations(quizAttempts, ({ one, many }) => ({
+  user:     one(users, { fields: [quizAttempts.userId], references: [users.id] }),
+  video:    one(videos, { fields: [quizAttempts.videoId], references: [videos.id] }),
+  playlist: one(playlists, { fields: [quizAttempts.playlistId], references: [playlists.id] }),
+  codingCompletions: many(codingCompletions),
+}))
+
+export const codingCompletionsRelations = relations(codingCompletions, ({ one }) => ({
+  user:        one(users, { fields: [codingCompletions.userId], references: [users.id] }),
+  quizAttempt: one(quizAttempts, { fields: [codingCompletions.quizAttemptId], references: [quizAttempts.id] }),
 }))

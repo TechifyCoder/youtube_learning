@@ -56,7 +56,7 @@ export default async function WatchPage({ params }: Props) {
     ))
     .orderBy(asc(videos.orderIndex))
     .then(all => all.filter(v => v.orderIndex > video.orderIndex))
-    .then(filtered => [filtered[0]])
+    .then(filtered => [filtered[0] ?? null])
 
   // Generate parts if video is very long
   const parts = video.durationSeconds > 3600 

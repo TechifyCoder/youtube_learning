@@ -11,10 +11,7 @@ import { db } from '@/lib/db'
 import { playlists, videos as videosTable, scheduleDays } from '@/lib/db/schema'
 import { eq, desc, asc, and, inArray } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
-import { getScheduleDayStatus } from '@/lib/scheduleClient' // wait, I need a server-safe one
 import type { CourseCardData, StatsData } from '@/types'
-
-// ... (will write a local helper here)
 
 export const metadata = { title: 'Dashboard' }
 
@@ -47,8 +44,8 @@ export default async function DashboardPage() {
 
   const todayStr = new Date().toISOString().split('T')[0]!
 
-  let globalNextDay = null
-  let globalNextDayPlaylistId = null
+  let globalNextDay: any = null
+  let globalNextDayPlaylistId: string | null = null
 
   const courseCards: CourseCardData[] = userPlaylists.map((p) => {
     const pVideos = allVideos.filter(v => v.playlistId === p.id)
@@ -74,12 +71,13 @@ export default async function DashboardPage() {
     if (pSchedule.length > 0 && uncompletedDays.length === 0) {
       scheduleStatus = 'completed'
     } else if (nextDay) {
-      if (nextDay.date < todayStr) scheduleStatus = 'behind'
-      else if (nextDay.date === todayStr) scheduleStatus = 'on_track'
+      const nextDayDateStr = new Date(nextDay.date).toISOString().split('T')[0]!
+      if (nextDayDateStr < todayStr) scheduleStatus = 'behind'
+      else if (nextDayDateStr === todayStr) scheduleStatus = 'on_track'
     }
 
     return {
-      playlist: p,
+      playlist: p as any,
       completedVideos: completed,
       totalVideos: pVideos.length,
       totalWatchedSeconds,

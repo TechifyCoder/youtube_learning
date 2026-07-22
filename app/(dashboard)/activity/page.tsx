@@ -100,7 +100,7 @@ export default async function ActivityPage() {
             </div>
             <p className="text-sm font-medium text-[--text-secondary]">Current Streak</p>
           </div>
-          <p className="text-2xl font-bold text-[--text-primary]">{user.streakCount}</p>
+          <p className="text-2xl font-bold text-[--text-primary]">{user?.streakCount ?? 0}</p>
           <p className="text-xs text-[--text-muted] mt-1">days</p>
         </GlassCard>
 
@@ -111,7 +111,7 @@ export default async function ActivityPage() {
             </div>
             <p className="text-sm font-medium text-[--text-secondary]">Best Streak</p>
           </div>
-          <p className="text-2xl font-bold text-[--text-primary]">{user.longestStreak}</p>
+          <p className="text-2xl font-bold text-[--text-primary]">{user?.longestStreak ?? 0}</p>
           <p className="text-xs text-[--text-muted] mt-1">days</p>
         </GlassCard>
 

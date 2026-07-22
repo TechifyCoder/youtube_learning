@@ -12,7 +12,8 @@ export function getScheduleDayStatus(day: ScheduleDay): 'completed' | 'on_track'
   if (day.isCompleted) return 'completed'
 
   const todayStr = new Date().toISOString().split('T')[0]!
-  const dayStr = day.date // Assuming YYYY-MM-DD format
+  // Ensure date is string format "YYYY-MM-DD"
+  const dayStr = new Date(day.date).toISOString().split('T')[0]!
 
   if (dayStr < todayStr) return 'behind'
   if (dayStr === todayStr) return 'on_track'

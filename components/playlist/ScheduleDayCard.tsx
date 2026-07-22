@@ -124,7 +124,7 @@ export function ScheduleDayCard({ day, videoTitles, onMarkComplete, index = 0 }:
           {!day.isCompleted && status !== 'upcoming' && (
             <div className="pt-2 mt-2 border-t border-white/[0.05]">
               <Button 
-                variant="outline" 
+                variant="default" 
                 size="sm" 
                 className="w-full bg-white/[0.02] hover:bg-green-500/10 hover:text-green-400 border-white/[0.05] hover:border-green-500/30"
                 onClick={handleComplete}

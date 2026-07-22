@@ -5,6 +5,7 @@ import { Badge } from '@/components/common/Badge'
 import { EmptyState } from '@/components/common/EmptyState'
 import { VideoListItem } from '@/components/playlist/VideoListItem'
 import { ScheduleCalendar } from '@/components/playlist/ScheduleCalendar'
+import { PlaylistQuizClient } from '@/components/quiz/PlaylistQuizClient'
 import { db } from '@/lib/db'
 import { playlists, videos, scheduleDays } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
@@ -51,6 +52,8 @@ export default async function PlaylistPage({ params }: Props) {
 
   const completedCount = playlistVideos.filter((v) => v.isCompleted).length
   const progressPercent = Math.round((completedCount / (playlistVideos.length || 1)) * 100)
+  const isFullyCompleted = completedCount === playlistVideos.length && playlistVideos.length > 0
+  const combinedTranscript = playlistVideos.map(v => v.transcript || '').join(' ').slice(0, 15000)
   const totalSeconds = playlistVideos.reduce((acc, v) => acc + v.durationSeconds, 0)
 
   // Calculate days remaining
@@ -165,6 +168,14 @@ export default async function PlaylistPage({ params }: Props) {
         </div>
 
       </div>
+
+      <PlaylistQuizClient 
+        playlistId={playlist.id}
+        courseTitle={playlist.title}
+        videos={playlistVideos.map(v => ({ id: v.id, title: v.title }))}
+        combinedTranscript={combinedTranscript}
+        isFullyCompleted={isFullyCompleted}
+      />
     </PageWrapper>
   )
 }

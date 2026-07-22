@@ -152,3 +152,48 @@ export interface StatsData {
   activeCoursesCount: number
   completedCoursesCount: number
 }
+
+// ─── Quiz System ─────────────────────────────────────────────
+export interface QuizQuestion {
+  type: 'mcq' | 'truefalse' | 'fillblank' | 'short_answer'
+  question: string
+  options?: string[]
+  correct?: number
+  explanation?: string
+  sampleAnswer?: string
+  evaluationCriteria?: string[]
+}
+
+export interface FinalQuizQuestion {
+  type: 'mcq' | 'short_answer' | 'coding_practice'
+  question: string
+  options?: string[]
+  correct?: number
+  explanation?: string
+  sampleAnswer?: string
+  evaluationCriteria?: string[]
+  context?: string
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  platform_links?: Array<{ name: string; url: string }>
+  hint?: string
+}
+
+export interface QuizAttempt {
+  id: string
+  userId: string
+  videoId?: string
+  playlistId: string
+  quizType: 'video' | 'final'
+  questions: QuizQuestion[] | FinalQuizQuestion[]
+  answers: number[]
+  score: number
+  isComplete: boolean
+  startedAt: Date
+  completedAt?: Date
+}
+
+export interface ShortAnswerEvaluation {
+  score: number
+  feedback: string
+  criteriaMet: string[]
+}

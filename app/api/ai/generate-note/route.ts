@@ -65,7 +65,7 @@ Format your notes using Markdown (bullet points, bold text). Focus strictly on t
     const prompt = `${systemPrompt}\n\nTranscript Snippet (${Math.floor(startSeconds/60)}:${startSeconds%60} to ${Math.floor(endSeconds/60)}:${endSeconds%60}):\n${textToSummarize}`
 
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-flash-latest',
       contents: prompt,
     })
 
