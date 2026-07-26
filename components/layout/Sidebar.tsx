@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { LayoutDashboard, PlusCircle, ListVideo, LogOut, Award, UserCircle, BarChart2, Settings, ChevronDown, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, PlusCircle, ListVideo, LogOut, Award, UserCircle, BarChart2, Settings, ChevronDown, ChevronRight, BrainCircuit } from 'lucide-react'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
@@ -41,6 +41,7 @@ const NAV_CATEGORIES = [
     title: 'PROGRESS',
     items: [
       { href: '/activity',  icon: BarChart2,        label: 'Activity' },
+      { href: '/quizzes',   icon: BrainCircuit,     label: 'Quizzes' },
     ]
   },
   {

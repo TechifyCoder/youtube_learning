@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/common/GlassCard'
-import { Flame, Trophy } from 'lucide-react'
+import { Flame, Trophy, Check } from 'lucide-react'
 import { fadeInUp } from '@/lib/animations'
 import { toast } from 'react-hot-toast'
 
@@ -11,6 +11,7 @@ interface StreakData {
   currentStreak: number
   longestStreak: number
   isAlive: boolean
+  activeDates?: string[]
 }
 
 export function StreakCard() {
@@ -48,14 +49,25 @@ export function StreakCard() {
     )
   }
 
-  const { currentStreak, longestStreak, isAlive } = data
+  const { currentStreak, longestStreak, isAlive, activeDates = [] } = data
+
+  const today = new Date()
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today)
+    d.setDate(today.getDate() - (6 - i))
+    return {
+      date: d,
+      dateStr: d.toISOString().split('T')[0]!,
+      dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+    }
+  })
 
   return (
     <GlassCard padding="md" variant="subtle" className="relative overflow-hidden h-full flex flex-col justify-center">
       {/* Decorative gradient orb */}
       <div className="absolute -top-12 -right-12 w-32 h-32 bg-orange-500/20 rounded-full blur-[40px] pointer-events-none" />
 
-      <div className="flex items-start justify-between relative z-10">
+      <div className="flex items-start justify-between relative z-10 mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Flame className={`w-5 h-5 ${isAlive && currentStreak > 0 ? 'text-orange-500' : 'text-zinc-500'}`} />
@@ -78,25 +90,46 @@ export function StreakCard() {
             <span className="text-[--text-secondary] font-medium">days</span>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2 text-sm">
-            <Trophy className="w-4 h-4 text-yellow-500 shrink-0" />
-            <span className="text-[--text-secondary] whitespace-nowrap">
-              Personal best: <span className="text-[--text-primary] font-semibold">{longestStreak} days</span>
-            </span>
+          <div className="mt-2 text-sm text-[--text-secondary]">
+            {!isAlive && currentStreak === 0 && longestStreak > 0 
+              ? "Streak reset — start fresh 💪" 
+              : "Keep the momentum going!"}
           </div>
         </div>
       </div>
 
-      {!isAlive && currentStreak === 0 && longestStreak > 0 && (
-        <motion.div {...fadeInUp} className="mt-3 text-sm text-red-400/80 font-medium">
-          Streak reset — start fresh 💪
-        </motion.div>
-      )}
-      {!isAlive && currentStreak === 0 && longestStreak === 0 && (
-        <motion.div {...fadeInUp} className="mt-3 text-sm text-[--text-secondary] font-medium">
-          Start your learning streak today!
-        </motion.div>
-      )}
+      <div className="mt-4 pt-4 border-t border-white/5 relative z-10">
+        <div className="flex items-center justify-between relative">
+          {/* Background line connecting all */}
+          <div className="absolute top-4 left-[7%] right-[7%] h-[2px] bg-white/10 -z-10" />
+          
+          {weekDays.map((day) => {
+            const isActive = activeDates.includes(day.dateStr)
+
+            return (
+              <div key={day.dateStr} className="flex flex-col items-center gap-2 z-10 relative">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300
+                  ${isActive 
+                    ? 'bg-primary border-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.6)]' 
+                    : 'bg-[#111] border-white/10 text-white/20'}`}
+                >
+                  {isActive && <Check className="w-4 h-4" />}
+                </div>
+                <span className={`text-[10px] font-semibold uppercase tracking-wider ${isActive ? 'text-[--text-primary]' : 'text-[--text-muted]'}`}>
+                  {day.dayName}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+        
+        <div className="mt-6 flex items-center gap-2 text-sm">
+          <Trophy className="w-4 h-4 text-yellow-500 shrink-0" />
+          <span className="text-[--text-secondary] whitespace-nowrap">
+            Personal best: <span className="text-[--text-primary] font-semibold">{longestStreak} days</span>
+          </span>
+        </div>
+      </div>
     </GlassCard>
   )
 }

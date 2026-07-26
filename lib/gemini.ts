@@ -1,16 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
-
 export async function streamAnswer(
   transcript: string,
-  question: string
+  question: string,
+  apiKey?: string
 ) {
-  if (!process.env.GEMINI_API_KEY) {
+  const key = apiKey || process.env.GEMINI_API_KEY
+  if (!key) {
     throw new Error("GEMINI_API_KEY is missing");
   }
+
+  const ai = new GoogleGenAI({ apiKey: key });
 
   const systemPrompt = `You are LearnLoop's AI learning assistant.
 Your goal is to help the user understand the educational video they are currently watching.
@@ -124,8 +124,9 @@ Rules:
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 2048,
+        temperature: 0.3,
+        maxOutputTokens: 4096,
+        responseMimeType: "application/json",
       }
     })
   })
@@ -229,6 +230,7 @@ For short_answer questions:
       generationConfig: {
         temperature: 0.3,
         maxOutputTokens: 4096,
+        responseMimeType: "application/json",
       }
     })
   })
@@ -286,7 +288,11 @@ Be encouraging but honest. If answer is blank or irrelevant, score 0.
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 512 }
+      generationConfig: { 
+        temperature: 0.1, 
+        maxOutputTokens: 1024,
+        responseMimeType: 'application/json'
+      }
     })
   })
 
@@ -311,34 +317,25 @@ Be encouraging but honest. If answer is blank or irrelevant, score 0.
   }
 }
 
-import { db } from '@/lib/db'
-import { users } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { getUserKeys } from './userKeys'
 
-// export async function getGeminiKey(userId: string): Promise<string> {
-//   const user = await db.query.users.findFirst({
-//     where: eq(users.id, userId),
-//     columns: { geminiApiKey: true }
-//   })
-
-//   if (user?.geminiApiKey) {
-//     return user.geminiApiKey
-//   }
-
-//   if (process.env.GEMINI_API_KEY) {
-//     return process.env.GEMINI_API_KEY
-//   }
-
-//   throw new Error("GEMINI_KEY_MISSING")
-// }
-
-
-export async function getGeminiKey(): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is missing");
+/**
+ * Resolves the correct Gemini API key for a given user.
+ * - BYOK users: uses their encrypted personal key from DB
+ * - Subscription users: uses the platform GEMINI_API_KEY from .env
+ * - Falls back to platform key if BYOK key is not set yet
+ */
+export async function getGeminiKey(userId?: string): Promise<string> {
+  if (userId) {
+    const keys = await getUserKeys(userId)
+    if (keys.geminiApiKey) {
+      return keys.geminiApiKey
+    }
   }
 
-  return apiKey;
+  // Fall back to platform key (subscription mode or BYOK user hasn't set a key yet)
+  const apiKey = process.env.GEMINI_API_KEY
+  if (apiKey) return apiKey
+
+  throw new Error('GEMINI_KEY_MISSING')
 }

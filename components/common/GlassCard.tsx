@@ -7,11 +7,18 @@ import { cn } from '@/lib/utils'
 
 export type GlassCardVariant = 'standard' | 'elevated' | 'subtle' | 'active'
 
-interface GlassCardProps {
+// interface GlassCardProps {
+//   children: React.ReactNode
+//   variant?: GlassCardVariant
+//   className?: string
+//   onClick?: () => void
+//   padding?: 'none' | 'sm' | 'md' | 'lg'
+// }
+
+
+interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
   variant?: GlassCardVariant
-  className?: string
-  onClick?: () => void
   padding?: 'none' | 'sm' | 'md' | 'lg'
 }
 

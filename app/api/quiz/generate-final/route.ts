@@ -14,7 +14,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const geminiKey = await getGeminiKey()
+    // BYOK: resolves user's personal key, falls back to platform key
+    const geminiKey = await getGeminiKey(session.user.id)
     const questions = await generateFinalQuiz(courseTitle, videoTitles, combinedTranscript, geminiKey)
 
     return NextResponse.json(questions)

@@ -11,7 +11,8 @@ export async function POST(req: Request) {
 
     const { question, userAnswer, sampleAnswer, criteria } = await req.json()
     
-    const geminiKey = await getGeminiKey()
+    // BYOK: resolves user's personal key, falls back to platform key
+    const geminiKey = await getGeminiKey(session.user.id)
     const result = await evaluateShortAnswer(question, userAnswer, sampleAnswer, criteria, geminiKey)
 
     return NextResponse.json(result)

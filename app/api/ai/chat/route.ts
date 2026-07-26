@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import { streamAnswer } from '@/lib/gemini'
 import { prepareTranscriptForAI } from '@/lib/transcript'
+import { getUserKeys } from '@/lib/userKeys'
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/ai/chat
@@ -32,10 +33,21 @@ export async function POST(req: Request) {
 
     const { question, transcript } = parsed.data
 
+    // Resolve BYOK or platform Gemini key
+    const keys = await getUserKeys(session.user.id)
+    const geminiKey = keys.geminiApiKey || process.env.GEMINI_API_KEY
+
+    if (!geminiKey) {
+      return new Response(
+        JSON.stringify({ error: 'No Gemini API key found. Add your key in Settings → API Keys.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Truncate transcript to fit context window safely
     const safeTranscript = prepareTranscriptForAI(transcript)
 
-    const stream = await streamAnswer(safeTranscript, question)
+    const stream = await streamAnswer(safeTranscript, question, geminiKey)
 
     // Respond with a readable stream for streaming client fetch
     return new Response(stream, {

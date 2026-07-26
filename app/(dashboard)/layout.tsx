@@ -8,7 +8,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 // ─────────────────────────────────────────────────────────────
 
 import { db } from '@/lib/db'
-import { playlists } from '@/lib/db/schema'
+import { playlists, users } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import { StreakRecoveryModal } from '@/components/dashboard/StreakRecoveryModal'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
@@ -24,6 +24,13 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
+  // Check if user exists (onboardingComplete check removed for Free Mode)
+  const [userData] = await db
+    .select({ onboardingComplete: users.onboardingComplete })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1)
+
   // Fetch user's courses (playlists) to show in sidebar
   const userPlaylists = await db
     .select({
@@ -33,6 +40,7 @@ export default async function DashboardLayout({
     .from(playlists)
     .where(eq(playlists.userId, session.user.id))
     .orderBy(desc(playlists.createdAt))
+
 
   return (
     <div className="flex h-screen bg-[--bg-primary] overflow-hidden">

@@ -1,0 +1,224 @@
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  integer,
+  boolean,
+  date,
+  jsonb,
+  decimal,
+  unique,
+} from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
+
+// ─────────────────────────────────────────────────────────────
+// USER DB SCHEMA — ALL tables EXCEPT users
+// DATABASE: each user's own Neon DB (stored encrypted in platformDb)
+// PURPOSE: ALL user activity, learning data, progress.
+//
+// These tables are created automatically when user pastes their
+// Neon DB URL during onboarding (via setupUserDatabase()).
+//
+// NOTE: user_id columns here reference the user's ID from the
+// platform DB — they are NOT foreign keys (different databases).
+// ─────────────────────────────────────────────────────────────
+
+// ─── Table: playlists ─────────────────────────────────────────
+export const playlists = pgTable('playlists', {
+  id:                  uuid('id').primaryKey().defaultRandom(),
+  userId:              uuid('user_id').notNull(),           // References platform DB users.id
+  title:               text('title').notNull(),
+  source:              text('source').notNull(),             // 'youtube' | 'custom'
+  youtubePlaylistId:   text('youtube_playlist_id'),          // null for custom
+  thumbnail:           text('thumbnail'),
+  totalVideos:         integer('total_videos').default(0).notNull(),
+  commitmentDays:      integer('commitment_days').notNull(),
+  hoursPerDay:         decimal('hours_per_day', { precision: 4, scale: 2 }),
+  startDate:           date('start_date').notNull(),
+  deadline:            date('deadline').notNull(),
+  createdAt:           timestamp('created_at').defaultNow().notNull(),
+})
+
+// ─── Table: videos ────────────────────────────────────────────
+export const videos = pgTable('videos', {
+  id:              uuid('id').primaryKey().defaultRandom(),
+  playlistId:      uuid('playlist_id').notNull().references(() => playlists.id, { onDelete: 'cascade' }),
+  userId:          uuid('user_id').notNull(),                // References platform DB users.id
+  youtubeVideoId:  text('youtube_video_id').notNull(),
+  title:           text('title').notNull(),
+  thumbnail:       text('thumbnail'),
+  durationSeconds: integer('duration_seconds').notNull(),
+  orderIndex:      integer('order_index').notNull(),
+  isCompleted:     boolean('is_completed').default(false).notNull(),
+  transcript:      text('transcript'),
+  createdAt:       timestamp('created_at').defaultNow().notNull(),
+  updatedAt:       timestamp('updated_at').defaultNow().notNull(),
+})
+
+// ─── Table: watch_progress ────────────────────────────────────
+export const watchProgress = pgTable(
+  'watch_progress',
+  {
+    id:                  uuid('id').primaryKey().defaultRandom(),
+    videoId:             uuid('video_id').references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+    userId:              uuid('user_id').notNull(),
+    watchedSegments:     jsonb('watched_segments').default([]).notNull(),
+    totalWatchedSeconds: integer('total_watched_seconds').default(0).notNull(),
+    lastWatchedAt:       timestamp('last_watched_at'),
+  },
+  (table) => ({
+    uniqueVideoUser: unique('watch_progress_video_user_unique').on(table.videoId, table.userId),
+  })
+)
+
+// ─── Table: schedule_days ─────────────────────────────────────
+export const scheduleDays = pgTable('schedule_days', {
+  id:            uuid('id').primaryKey().defaultRandom(),
+  playlistId:    uuid('playlist_id').references(() => playlists.id, { onDelete: 'cascade' }).notNull(),
+  dayNumber:     integer('day_number').notNull(),
+  date:          date('date').notNull(),
+  videoIds:      jsonb('video_ids').notNull(),
+  targetMinutes: integer('target_minutes').notNull(),
+  isCompleted:   boolean('is_completed').default(false).notNull(),
+  status:        text('status').default('upcoming').notNull(),
+})
+
+// ─── Table: activity_log ──────────────────────────────────────
+export const activityLog = pgTable('activity_log', {
+  id:             uuid('id').primaryKey().defaultRandom(),
+  userId:         uuid('user_id').notNull(),
+  date:           date('date').notNull(),
+  minutesWatched: integer('minutes_watched').default(0).notNull(),
+  videosWatched:  integer('videos_watched').default(0).notNull(),
+}, (table) => ({
+  uniqueUserDate: unique('activity_log_user_date_unique').on(table.userId, table.date)
+}))
+
+// ─── Table: quiz_attempts ─────────────────────────────────────
+export const quizAttempts = pgTable('quiz_attempts', {
+  id:          uuid('id').primaryKey().defaultRandom(),
+  userId:      uuid('user_id').notNull(),
+  videoId:     uuid('video_id').references(() => videos.id, { onDelete: 'cascade' }),
+  playlistId:  uuid('playlist_id').references(() => playlists.id, { onDelete: 'cascade' }).notNull(),
+  quizType:    text('quiz_type').notNull(),   // 'video' | 'final'
+  questions:   jsonb('questions').notNull(),
+  answers:     jsonb('answers').default([]),
+  score:       integer('score').default(0),
+  maxScore:    integer('max_score').default(100),
+  isComplete:  boolean('is_complete').default(false),
+  startedAt:   timestamp('started_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+})
+
+// ─── Table: coding_completions ────────────────────────────────
+export const codingCompletions = pgTable('coding_completions', {
+  id:             uuid('id').primaryKey().defaultRandom(),
+  userId:         uuid('user_id').notNull(),
+  quizAttemptId:  uuid('quiz_attempt_id').references(() => quizAttempts.id, { onDelete: 'cascade' }).notNull(),
+  questionIndex:  integer('question_index').notNull(),
+  markedDoneAt:   timestamp('marked_done_at').defaultNow(),
+})
+
+// ─── Table: certificates ──────────────────────────────────────
+export const certificates = pgTable('certificates', {
+  id:         uuid('id').primaryKey().defaultRandom(),
+  userId:     uuid('user_id').notNull(),
+  playlistId: uuid('playlist_id').references(() => playlists.id, { onDelete: 'cascade' }).notNull(),
+  issuedAt:   timestamp('issued_at').defaultNow().notNull(),
+  totalHours: decimal('total_hours', { precision: 10, scale: 2 }).notNull(),
+  shareToken: text('share_token').unique().notNull(),
+}, (table) => ({
+  uniqueUserPlaylist: unique('certificates_user_playlist_unique').on(table.userId, table.playlistId)
+}))
+
+// ─── Table: notes ─────────────────────────────────────────────
+export const notes = pgTable('notes', {
+  id:                  uuid('id').primaryKey().defaultRandom(),
+  videoId:             uuid('video_id').references(() => videos.id, { onDelete: 'cascade' }).notNull(),
+  userId:              uuid('user_id').notNull(),
+  content:             text('content').notNull(),
+  timestampSeconds:    integer('timestamp_seconds').notNull(),
+  endTimestampSeconds: integer('end_timestamp_seconds'),
+  createdAt:           timestamp('created_at').defaultNow().notNull(),
+})
+
+// ─────────────────────────────────────────────────────────────
+// Relations (only within the user DB — no cross-DB FK references)
+// ─────────────────────────────────────────────────────────────
+
+export const playlistsRelations = relations(playlists, ({ many }) => ({
+  videos:       many(videos),
+  scheduleDays: many(scheduleDays),
+  certificates: many(certificates),
+  quizAttempts: many(quizAttempts),
+}))
+
+export const videosRelations = relations(videos, ({ one, many }) => ({
+  playlist:      one(playlists, { fields: [videos.playlistId], references: [playlists.id] }),
+  watchProgress: many(watchProgress),
+  notes:         many(notes),
+  quizAttempts:  many(quizAttempts),
+}))
+
+export const watchProgressRelations = relations(watchProgress, ({ one }) => ({
+  video: one(videos, { fields: [watchProgress.videoId], references: [videos.id] }),
+}))
+
+export const scheduleDaysRelations = relations(scheduleDays, ({ one }) => ({
+  playlist: one(playlists, { fields: [scheduleDays.playlistId], references: [playlists.id] }),
+}))
+
+export const quizAttemptsRelations = relations(quizAttempts, ({ one, many }) => ({
+  video:    one(videos, { fields: [quizAttempts.videoId], references: [videos.id] }),
+  playlist: one(playlists, { fields: [quizAttempts.playlistId], references: [playlists.id] }),
+  codingCompletions: many(codingCompletions),
+}))
+
+export const codingCompletionsRelations = relations(codingCompletions, ({ one }) => ({
+  quizAttempt: one(quizAttempts, { fields: [codingCompletions.quizAttemptId], references: [quizAttempts.id] }),
+}))
+
+export const certificatesRelations = relations(certificates, ({ one }) => ({
+  playlist: one(playlists, { fields: [certificates.playlistId], references: [playlists.id] }),
+}))
+
+export const notesRelations = relations(notes, ({ one }) => ({
+  video: one(videos, { fields: [notes.videoId], references: [videos.id] }),
+}))
+
+// ─────────────────────────────────────────────────────────────
+// Export the full user schema object for Drizzle client
+// ─────────────────────────────────────────────────────────────
+export const userSchema = {
+  playlists,
+  videos,
+  watchProgress,
+  scheduleDays,
+  activityLog,
+  quizAttempts,
+  codingCompletions,
+  certificates,
+  notes,
+  // Relations
+  playlistsRelations,
+  videosRelations,
+  watchProgressRelations,
+  scheduleDaysRelations,
+  quizAttemptsRelations,
+  codingCompletionsRelations,
+  certificatesRelations,
+  notesRelations,
+}
+
+// Type exports
+export type Playlist = typeof playlists.$inferSelect
+export type NewPlaylist = typeof playlists.$inferInsert
+export type Video = typeof videos.$inferSelect
+export type NewVideo = typeof videos.$inferInsert
+export type WatchProgress = typeof watchProgress.$inferSelect
+export type ScheduleDay = typeof scheduleDays.$inferSelect
+export type ActivityLog = typeof activityLog.$inferSelect
+export type QuizAttempt = typeof quizAttempts.$inferSelect
+export type Certificate = typeof certificates.$inferSelect
+export type Note = typeof notes.$inferSelect

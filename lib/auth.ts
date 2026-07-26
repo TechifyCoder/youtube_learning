@@ -54,17 +54,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
-      // Attach our internal DB user ID to the session
+      // Attach our internal DB user ID + onboardingComplete to the session
       if (session.user?.email) {
         try {
           const [dbUser] = await db
-            .select({ id: users.id })
+            .select({
+              id: users.id,
+              onboardingComplete: users.onboardingComplete,
+            })
             .from(users)
             .where(eq(users.email, session.user.email))
             .limit(1)
 
           if (dbUser) {
             session.user.id = dbUser.id
+            session.user.onboardingComplete = dbUser.onboardingComplete
           }
         } catch (error) {
           console.error('[Auth] Failed to fetch user ID for session:', error)
@@ -99,6 +103,7 @@ declare module 'next-auth' {
       name?: string | null
       email?: string | null
       image?: string | null
+      onboardingComplete?: boolean
     }
   }
 }

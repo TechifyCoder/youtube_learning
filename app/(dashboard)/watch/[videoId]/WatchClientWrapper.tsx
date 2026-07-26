@@ -24,9 +24,10 @@ interface WatchClientWrapperProps {
   initialSegments: Segment[]
   nextVideoId?: string
   parts?: VideoPart[]
+  existingAttempt?: any
 }
 
-export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts }: WatchClientWrapperProps) {
+export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts, existingAttempt }: WatchClientWrapperProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [showChatMobile, setShowChatMobile] = useState(false)
@@ -307,13 +308,39 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
               <p className="text-muted-foreground text-sm max-w-sm">
                 Take a quick AI-generated quiz based on this video's transcript to reinforce your understanding.
               </p>
-              <Button 
-                onClick={() => setShowQuizModal(true)} 
-                className="mt-6"
-                size="lg"
-              >
-                Start Quiz Now
-              </Button>
+              
+              {existingAttempt ? (
+                <div className="mt-6 flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {existingAttempt.isComplete ? (
+                      <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-green-500/10 text-green-400 rounded-md flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4" /> Completed (Score: {existingAttempt.score}%)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 bg-yellow-500/10 text-yellow-400 rounded-md">
+                        Pending (Incomplete)
+                      </span>
+                    )}
+                  </div>
+                  {existingAttempt.isComplete ? (
+                    <Button onClick={() => router.push('/quizzes')} size="lg" className="w-full max-w-[200px]">
+                      Review Results
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setShowQuizModal(true)} size="lg" className="w-full max-w-[200px]">
+                      Resume Quiz
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setShowQuizModal(true)} 
+                  className="mt-6"
+                  size="lg"
+                >
+                  Start Quiz Now
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -334,6 +361,7 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts 
           playlistId={video.playlistId}
           transcript={video.transcript || ''}
           videoTitle={video.title}
+          existingAttempt={existingAttempt}
           onComplete={(score) => setShowQuizModal(false)}
           onSkip={() => setShowQuizModal(false)}
         />

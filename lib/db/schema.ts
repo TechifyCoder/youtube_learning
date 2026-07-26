@@ -30,6 +30,14 @@ export const users = pgTable('users', {
   bio:            text('bio'),
   isPublic:       boolean('is_public').default(false).notNull(),
   settings:       jsonb('settings').default({ reminderEnabled: false, reminderTime: '09:00' }).notNull(),
+  mode:           text('mode').default('byok').notNull(),
+  youtubeApiKey:  text('youtube_api_key'),
+  geminiApiKey:   text('gemini_api_key'),
+  byokDatabaseUrl: text('byok_database_url'),
+  plan:           text('plan').default('free').notNull(),
+  planExpiresAt:  timestamp('plan_expires_at'),
+  razorpayCustomerId: text('razorpay_customer_id'),
+  onboardingComplete: boolean('onboarding_complete').default(false).notNull(),
   createdAt:      timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -155,6 +163,18 @@ export const codingCompletions = pgTable('coding_completions', {
   markedDoneAt:   timestamp('marked_done_at').defaultNow(),
 })
 
+// ─── Table: payments ──────────────────────────────────────────
+export const payments = pgTable('payments', {
+  id:                 uuid('id').primaryKey().defaultRandom(),
+  userId:             uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  razorpayOrderId:    text('razorpay_order_id').notNull(),
+  razorpayPaymentId:  text('razorpay_payment_id'),
+  amountPaise:        integer('amount_paise'),
+  plan:               text('plan'),
+  status:             text('status').default('pending').notNull(),
+  createdAt:          timestamp('created_at').defaultNow().notNull(),
+})
+
 // ─────────────────────────────────────────────────────────────
 // Relations (for Drizzle query API)
 // ─────────────────────────────────────────────────────────────
@@ -168,6 +188,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   notes:         many(notes),
   quizAttempts:  many(quizAttempts),
   codingCompletions: many(codingCompletions),
+  payments:      many(payments),
 }))
 
 export const playlistsRelations = relations(playlists, ({ one, many }) => ({
@@ -215,4 +236,8 @@ export const quizAttemptsRelations = relations(quizAttempts, ({ one, many }) => 
 export const codingCompletionsRelations = relations(codingCompletions, ({ one }) => ({
   user:        one(users, { fields: [codingCompletions.userId], references: [users.id] }),
   quizAttempt: one(quizAttempts, { fields: [codingCompletions.quizAttemptId], references: [quizAttempts.id] }),
+}))
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  user: one(users, { fields: [payments.userId], references: [users.id] }),
 }))

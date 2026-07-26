@@ -14,11 +14,12 @@ interface QuizModalProps {
   playlistId: string
   transcript: string
   videoTitle: string
+  existingAttempt?: any
   onComplete: (score: number) => void
   onSkip: () => void
 }
 
-export function QuizModal({ videoId, playlistId, transcript, videoTitle, onComplete, onSkip }: QuizModalProps) {
+export function QuizModal({ videoId, playlistId, transcript, videoTitle, existingAttempt, onComplete, onSkip }: QuizModalProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -40,9 +41,19 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
   const [shortAnswerText, setShortAnswerText] = useState('')
   const [evaluation, setEvaluation] = useState<{score: number, feedback: string, criteriaMet: string[]} | null>(null)
   const [isEvaluating, setIsEvaluating] = useState(false)
+  const [detailedAnswers, setDetailedAnswers] = useState<any[]>([])
 
   useEffect(() => {
     async function generateQuiz() {
+      if (existingAttempt) {
+        setQuestions(existingAttempt.questions)
+        // Start fresh in the UI to avoid complex state restoration, 
+        // but reuse the existing attempt ID and questions.
+        setAttemptId(existingAttempt.id)
+        setLoading(false)
+        return
+      }
+
       try {
         const res = await fetch('/api/quiz/generate-video', {
           method: 'POST',
@@ -77,17 +88,31 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
       }
     }
     generateQuiz()
-  }, [transcript, videoTitle, videoId, playlistId, onSkip])
+  }, [transcript, videoTitle, videoId, playlistId, onSkip, existingAttempt])
 
   const handleNextQuiz = async () => {
     if (selectedOption === null) return
 
     const currentQ = quizQuestions[currentIndex]
+    if (!currentQ) return
+
     let newScore = score
-    if (currentQ && selectedOption === currentQ.correct) {
+    let isCorrect = false
+    if (selectedOption === currentQ.correct) {
       newScore += 1
+      isCorrect = true
     }
     setScore(newScore)
+
+    const newAnswer = {
+      type: 'mcq',
+      question: currentQ.question,
+      selectedOption,
+      correctOption: currentQ?.correct,
+      isCorrect,
+    }
+    const updatedAnswers = [...detailedAnswers, newAnswer]
+    setDetailedAnswers(updatedAnswers)
 
     if (currentIndex < quizQuestions.length - 1) {
       setCurrentIndex(prev => prev + 1)
@@ -102,7 +127,8 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             score: finalScore,
-            isComplete: true
+            isComplete: true,
+            answers: updatedAnswers
           })
         })
         onComplete(finalScore)
@@ -143,6 +169,23 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setEvaluation(data)
+
+      const newAnswer = {
+        type: 'practice',
+        question: currentQ.question,
+        userAnswer: shortAnswerText,
+        evaluation: data
+      }
+      const updatedAnswers = [...detailedAnswers, newAnswer]
+      setDetailedAnswers(updatedAnswers)
+
+      if (attemptId) {
+        fetch(`/api/quiz/attempt/${attemptId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answers: updatedAnswers })
+        }).catch(console.error)
+      }
     } catch (err: any) {
       toast.error('Failed to evaluate. Please try again.')
     } finally {
@@ -152,7 +195,7 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-background/90 backdrop-blur-sm z-[100] flex items-center justify-center">
+      <div className="fixed inset-0 bg-[--bg-primary] z-[100] flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
           <p className="text-lg font-medium">Generating quiz and practice questions...</p>
@@ -164,8 +207,8 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
   if (isFinished) {
     const percentage = Math.round((score / Math.max(1, quizQuestions.length)) * 100)
     return (
-      <div className="fixed inset-0 bg-background/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div className="bg-card border border-border rounded-xl shadow-xl p-8 max-w-md w-full text-center space-y-6">
+      <div className="fixed inset-0 bg-[--bg-primary]/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div className="bg-[--bg-card] border border-[--border-subtle] rounded-xl shadow-card p-8 max-w-md w-full text-center space-y-6">
           <h2 className="text-3xl font-bold">Quiz Complete! 🎉</h2>
           <div className="py-6">
             <div className="text-5xl font-black text-primary mb-2">{percentage}%</div>
@@ -223,10 +266,11 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
                 >
                   <div className="flex items-center gap-3 w-full">
                     <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0
-                      ${isSelected && !showAnswer ? 'border-primary' : ''}
+                      ${isSelected && !showAnswer ? 'border-primary bg-primary/20' : ''}
                       ${showAnswer && isCorrect ? 'border-green-500 bg-green-500 text-white' : ''}
                       ${showAnswer && isSelected && !isCorrect ? 'border-red-500 bg-red-500 text-white' : ''}
                     `}>
+                      {isSelected && !showAnswer && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
                       {showAnswer && isCorrect && <CheckCircle2 className="w-3 h-3" />}
                       {showAnswer && isSelected && !isCorrect && <XCircle className="w-3 h-3" />}
                     </div>
@@ -355,8 +399,8 @@ export function QuizModal({ videoId, playlistId, transcript, videoTitle, onCompl
   }
 
   return (
-    <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 bg-[--bg-primary]/95 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-[--bg-card] border border-[--border-subtle] rounded-xl shadow-card w-full max-w-2xl flex flex-col max-h-[90vh]">
         
         {/* Header Tabs */}
         <div className="flex border-b border-border p-2 bg-background/50 rounded-t-xl shrink-0">

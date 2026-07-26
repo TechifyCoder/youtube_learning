@@ -2,8 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { videos, watchProgress, playlists } from '@/lib/db/schema'
-import { eq, and, asc } from 'drizzle-orm'
+import { videos, watchProgress, playlists, quizAttempts } from '@/lib/db/schema'
+import { eq, and, asc, desc } from 'drizzle-orm'
 import { ArrowLeft } from 'lucide-react'
 import type { Segment, VideoPart } from '@/types'
 import { splitLongVideo } from '@/lib/schedule'
@@ -63,6 +63,17 @@ export default async function WatchPage({ params }: Props) {
     ? splitLongVideo(video as any, 3600) 
     : []
 
+  // 5. Fetch existing quiz attempt
+  const [existingQuizAttempt] = await db
+    .select()
+    .from(quizAttempts)
+    .where(and(
+      eq(quizAttempts.videoId, video.id),
+      eq(quizAttempts.userId, userId)
+    ))
+    .orderBy(desc(quizAttempts.startedAt))
+    .limit(1)
+
   return (
     <div className="-mx-4 md:-mx-8 -mt-6 -mb-8 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 0px)' }}>
       {/* Top Bar */}
@@ -83,6 +94,7 @@ export default async function WatchPage({ params }: Props) {
           initialSegments={initialSegments}
           nextVideoId={nextVideo?.id}
           parts={parts}
+          existingAttempt={existingQuizAttempt}
         />
       </div>
     </div>

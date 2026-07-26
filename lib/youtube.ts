@@ -74,11 +74,11 @@ function parseDuration(iso: string): number {
 }
 
 // ─── Fetch Single Video Details ───────────────────────────────
-export async function fetchVideoDetails(videoId: string): Promise<YouTubeVideoMeta> {
-  const apiKey = process.env['YOUTUBE_API_KEY']
-  if (!apiKey) throw new YouTubeError('YouTube API key not configured', 'UNKNOWN')
+export async function fetchVideoDetails(videoId: string, apiKey?: string): Promise<YouTubeVideoMeta> {
+  const key = apiKey || process.env['YOUTUBE_API_KEY']
+  if (!key) throw new YouTubeError('YouTube API key not configured', 'UNKNOWN')
 
-  const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${key}`
   const res = await fetch(url, { next: { revalidate: 3600 } })
 
   await checkYouTubeError(res)
@@ -104,12 +104,12 @@ export async function fetchVideoDetails(videoId: string): Promise<YouTubeVideoMe
 }
 
 // ─── Fetch Full Playlist ──────────────────────────────────────
-export async function fetchPlaylist(playlistId: string): Promise<YouTubePlaylistData> {
-  const apiKey = process.env['YOUTUBE_API_KEY']
-  if (!apiKey) throw new YouTubeError('YouTube API key not configured', 'UNKNOWN')
+export async function fetchPlaylist(playlistId: string, apiKey?: string): Promise<YouTubePlaylistData> {
+  const key = apiKey || process.env['YOUTUBE_API_KEY']
+  if (!key) throw new YouTubeError('YouTube API key not configured', 'UNKNOWN')
 
   // Step 1: Get playlist metadata
-  const metaUrl = `https://www.googleapis.com/youtube/v3/playlists?part=snippet&id=${playlistId}&key=${apiKey}`
+  const metaUrl = `https://www.googleapis.com/youtube/v3/playlists?part=snippet&id=${playlistId}&key=${key}`
   const metaRes = await fetch(metaUrl, { next: { revalidate: 3600 } })
   await checkYouTubeError(metaRes)
 
@@ -131,7 +131,7 @@ export async function fetchPlaylist(playlistId: string): Promise<YouTubePlaylist
     pageUrl.searchParams.set('part', 'snippet')
     pageUrl.searchParams.set('maxResults', '50')
     pageUrl.searchParams.set('playlistId', playlistId)
-    pageUrl.searchParams.set('key', apiKey)
+    pageUrl.searchParams.set('key', key)
     if (nextPageToken) pageUrl.searchParams.set('pageToken', nextPageToken)
 
     const pageRes = await fetch(pageUrl.toString(), { next: { revalidate: 3600 } })
@@ -163,7 +163,7 @@ export async function fetchPlaylist(playlistId: string): Promise<YouTubePlaylist
   for (let i = 0; i < videoIds.length; i += 50) {
     const batch = videoIds.slice(i, i + 50)
     const ids = batch.join(',')
-    const detailUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${ids}&key=${apiKey}`
+    const detailUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${ids}&key=${key}`
     const detailRes = await fetch(detailUrl, { next: { revalidate: 3600 } })
     await checkYouTubeError(detailRes)
 
