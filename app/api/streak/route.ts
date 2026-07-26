@@ -4,6 +4,8 @@ import { users, activityLog } from '@/lib/db/schema'
 import { eq, and, gte, lte } from 'drizzle-orm'
 import { isStreakAlive, formatDate } from '@/lib/streak'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const session = await auth()

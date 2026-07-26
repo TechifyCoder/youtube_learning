@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { quizAttempts } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     const session = await auth()

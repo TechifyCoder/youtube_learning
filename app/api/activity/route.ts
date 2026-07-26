@@ -5,6 +5,8 @@ import { eq, and, gte, desc } from 'drizzle-orm'
 import { subDays } from 'date-fns'
 import { formatDate } from '@/lib/streak'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     const session = await auth()

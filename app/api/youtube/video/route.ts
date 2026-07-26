@@ -12,6 +12,8 @@ const querySchema = z.object({
   videoId: z.string().length(11, 'Invalid YouTube video ID'),
 })
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     const session = await auth()

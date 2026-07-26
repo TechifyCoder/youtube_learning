@@ -4,6 +4,8 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { payments } from '@/lib/db/schema'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const razorpay = new Razorpay({

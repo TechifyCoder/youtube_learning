@@ -12,6 +12,8 @@ const querySchema = z.object({
   url: z.string().min(1, 'URL is required'),
 })
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     // Auth check

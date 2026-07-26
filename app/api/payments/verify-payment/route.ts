@@ -5,6 +5,8 @@ import { db } from '@/lib/db'
 import { payments, users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const session = await auth()

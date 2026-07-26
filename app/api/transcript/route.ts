@@ -10,6 +10,8 @@ import { fetchTranscript, cleanTranscript } from '@/lib/transcript'
 // Fetches the transcript for a video, caching it in the DB
 // ─────────────────────────────────────────────────────────────
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     const session = await auth()
