@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Github, Twitter, Youtube } from 'lucide-react'
+import { Github } from 'lucide-react'
 
 export function Footer() {
   return (
@@ -38,18 +38,16 @@ export function Footer() {
 
         <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/5">
           <p>© {new Date().getFullYear()} LearnLoop. Built by Satish Patel.</p>
-          
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
-            <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
-              <Twitter className="w-5 h-5" />
-            </a>
-            <a href="https://github.com/TechifyCoder" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
-              <Github className="w-5 h-5" />
-            </a>
-            <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
-              <Youtube className="w-5 h-5" />
-            </a>
-          </div>
+
+          <a
+            href="https://github.com/TechifyCoder"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 mt-4 md:mt-0 hover:text-white transition-colors group"
+          >
+            <Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span className="text-sm">TechifyCoder</span>
+          </a>
         </div>
       </div>
     </footer>

@@ -14,6 +14,7 @@
 - **🎨 Stunning 3D UI**: Built with Tailwind CSS, Framer Motion, and `@splinetool/react-spline` for interactive 3D elements, sleek dark themes, and glassmorphism.
 - **🔐 Secure Authentication**: Handled via **NextAuth.js (v5)** with Google OAuth integration.
 - **💾 Database Management**: Powered by **Neon (Serverless PostgreSQL)** and queried via **Drizzle ORM**.
+- **📱 Fully Responsive**: Mobile-first design with bottom navigation, slide-up "More" sheet, and iOS safe-area support.
 
 ---
 
@@ -23,7 +24,7 @@
 - **Framework:** Next.js 14 (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS + custom CSS variables for themes
-- **Animations:** Framer Motion, Spline 3D
+- **Animations:** Framer Motion, Spline 3D, GSAP
 - **UI Components:** Radix UI primitives
 - **Charts/Data Vis:** Recharts
 
@@ -39,41 +40,66 @@
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-Ensure you have **Node.js** (v18+) and **pnpm** installed on your system.
+Ensure you have **Node.js** (v18+) and **npm** installed on your system.
+
+```bash
+node -v   # v18 or higher
+npm -v    # comes with Node.js
+```
 
 ### 2. Installation
 Clone the repository and install the dependencies:
 ```bash
 git clone https://github.com/your-username/learnloop.git
 cd learnloop
-pnpm install
+npm install
 ```
 
 ### 3. Environment Variables
 Rename the `.env.example` file to `.env.local` and populate it with your specific API keys and credentials:
 ```bash
+# Windows
+copy .env.example .env.local
+
+# Mac/Linux
 cp .env.example .env.local
 ```
+
 **Required Keys:**
-- `DATABASE_URL` (Neon DB connection string)
-- `NEXTAUTH_SECRET` (Generate using `npx auth secret`)
-- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET` (For OAuth)
-- `YOUTUBE_API_KEY` (Google Cloud Console)
-- `GEMINI_API_KEY` (Google AI Studio)
+- `DATABASE_URL` — Neon DB connection string
+- `NEXTAUTH_SECRET` — Generate using `npx auth secret`
+- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET` — For Google OAuth
+- `YOUTUBE_API_KEY` — Google Cloud Console
+- `GEMINI_API_KEY` — Google AI Studio
 
 ### 4. Database Setup
 Push the Drizzle schema to your Neon PostgreSQL database:
 ```bash
-pnpm db:generate
-pnpm db:push
+npm run db:generate
+npm run db:push
 ```
 
 ### 5. Run Development Server
 Start the local development server:
 ```bash
-pnpm dev
+npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📦 Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run db:generate` | Generate Drizzle migrations |
+| `npm run db:migrate` | Run migrations |
+| `npm run db:push` | Push schema to database |
+| `npm run db:studio` | Open Drizzle Studio (DB GUI) |
 
 ---
 
