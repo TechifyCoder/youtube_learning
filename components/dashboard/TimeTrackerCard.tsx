@@ -29,7 +29,7 @@ export function TimeTrackerCard() {
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="relative overflow-hidden bg-[--bg-card] rounded-3xl border border-[--border-subtle] p-6 flex flex-col justify-between h-full min-h-[300px] shadow-card group"
+      className="relative overflow-hidden bg-[--bg-card] rounded-3xl border border-[--border-subtle] p-6 flex flex-col justify-between h-full min-h-[220px] md:min-h-[300px] shadow-card group"
     >
       {/* Animated Glowing Background (Replaced Spline to fix crash) */}
       <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen pointer-events-none overflow-hidden">

@@ -89,8 +89,17 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts,
 
   // ─── Resizable panel state ────────────────────────────────────
   const [leftPercent, setLeftPercent] = useState(62) // default 62% left
+  const [isDesktop, setIsDesktop] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
+
+  // Detect desktop after mount to avoid SSR mismatch
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault()
@@ -124,8 +133,8 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts,
 
       {/* ── LEFT PANEL: Player + Details ── */}
       <div
-        className="flex flex-col min-h-0 overflow-y-auto lg:overflow-hidden"
-        style={{ width: `${leftPercent}%` }}
+        className="flex flex-col min-h-0 overflow-y-auto lg:overflow-hidden w-full"
+        style={isDesktop ? { width: `${leftPercent}%` } : {}}
       >
         <div className="flex flex-col h-full space-y-4 pr-0 lg:pr-2 overflow-y-auto">
           {/* Player */}
@@ -236,19 +245,40 @@ export function WatchClientWrapper({ video, initialSegments, nextVideoId, parts,
       </div>
 
       {/* ── RIGHT PANEL: AI Chat / Notes ── */}
+      {/* Mobile: Slide-up overlay / Desktop: Side panel */}
       <motion.div
         variants={slideInRight}
         initial="hidden"
         animate="show"
         className={cn(
-          "flex flex-col min-h-0 overflow-hidden pl-0 lg:pl-2",
-          "lg:flex",
-          showChatMobile ? "flex" : "hidden lg:flex"
+          "flex flex-col min-h-0 overflow-hidden",
+          /* Mobile: fixed bottom sheet when visible */
+          "lg:pl-2 lg:static lg:flex",
+          showChatMobile
+            ? "fixed inset-x-0 bottom-0 top-[30%] z-50 bg-[--bg-primary] border-t border-white/[0.08] rounded-t-2xl shadow-2xl flex"
+            : "hidden lg:flex"
         )}
-        style={{ width: `${rightPercent}%` }}
+        style={isDesktop ? { width: `${rightPercent}%` } : {}}
       >
+        {/* Mobile drag handle + close */}
+        <div className="lg:hidden flex flex-col items-center pt-2 pb-0 shrink-0">
+          <div className="w-10 h-1 rounded-full bg-white/20 mb-3" />
+          <div className="w-full flex items-center justify-between px-4 pb-2">
+            <span className="text-sm font-semibold text-[--text-primary]">AI Tools</span>
+            <button
+              onClick={() => setShowChatMobile(false)}
+              className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-[--text-muted] hover:text-[--text-primary] transition-colors"
+              aria-label="Close panel"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
         {/* Tab switcher */}
-        <div className="flex items-center gap-1 p-1 bg-black/40 rounded-xl border border-white/[0.05] mb-3 shrink-0">
+        <div className="flex items-center gap-1 p-1 mx-4 lg:mx-0 bg-black/40 rounded-xl border border-white/[0.05] mb-3 shrink-0">
           <button
             onClick={() => setActiveTab('chat')}
             className={cn(

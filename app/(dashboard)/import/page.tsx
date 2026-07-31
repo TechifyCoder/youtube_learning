@@ -67,11 +67,11 @@ export default function ImportPage() {
       <div className="max-w-2xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="font-heading font-bold text-display text-[--text-primary] mb-3">
+        <div className="text-center mb-8 md:mb-10">
+          <h1 className="font-heading font-bold text-2xl sm:text-3xl md:text-display text-[--text-primary] mb-3">
             Import Course
           </h1>
-          <p className="text-body text-[--text-secondary]">
+          <p className="text-sm md:text-body text-[--text-secondary]">
             Paste a YouTube playlist or video link to get started.
           </p>
         </div>

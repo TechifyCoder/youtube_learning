@@ -150,3 +150,35 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Mobile Improvements
+   ───────────────────────────────────────────────────────────── */
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent zoom on input focus on iOS */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  font-size: max(16px, 1em);
+}
+
+/* Safe area insets for bottom nav (iOS notch devices) */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+}
+
+/* Bottom nav safe area helper */
+nav.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

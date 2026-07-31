@@ -34,10 +34,10 @@ export default async function SettingsPage() {
   return (
     <PageWrapper className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="font-heading font-bold text-3xl text-[--text-primary] mb-2">
+        <h1 className="font-heading font-bold text-2xl md:text-3xl text-[--text-primary] mb-2">
           Settings
         </h1>
-        <p className="text-[--text-secondary]">
+        <p className="text-sm md:text-base text-[--text-secondary]">
           Manage your API keys, notifications, and app preferences.
         </p>
       </div>

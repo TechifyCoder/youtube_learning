@@ -1,10 +1,11 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav'
 
 // ─────────────────────────────────────────────────────────────
 // Dashboard Layout — wraps all /(dashboard)/* pages
-// Contains: Sidebar (desktop) + main content area + orb bg
+// Contains: Sidebar (desktop) + Mobile top/bottom nav + main content
 // ─────────────────────────────────────────────────────────────
 
 import { db } from '@/lib/db'
@@ -62,11 +63,11 @@ export default async function DashboardLayout({
         <MobileNavbar user={session.user} />
 
         {/* Page content — full width, each page controls its own max-width */}
-        <div className="flex-1 w-full min-h-0 overflow-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+        <div className="flex-1 w-full min-h-0 overflow-auto px-4 md:px-8 py-5 md:py-6 pb-24 md:pb-8">
           {children}
         </div>
 
-        {/* Mobile bottom nav */}
+        {/* Mobile bottom nav (client component with active state) */}
         <MobileBottomNav />
       </main>
       
@@ -97,32 +98,6 @@ function MobileNavbar({ user }: { user: { name?: string | null; image?: string |
           />
         )}
       </div>
-    </nav>
-  )
-}
-
-// ─── Mobile Bottom Nav ───────────────────────────────────────
-import Link from 'next/link'
-import { LayoutDashboard, PlusCircle, BarChart2, UserCircle } from 'lucide-react'
-
-function MobileBottomNav() {
-  return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-white/[0.06] bg-[--bg-primary]/90 backdrop-blur-xl px-4 py-2 flex justify-around z-50">
-      {[
-        { href: '/dashboard', icon: LayoutDashboard, label: 'Home' },
-        { href: '/import',    icon: PlusCircle,      label: 'Courses' },
-        { href: '/activity',  icon: BarChart2,       label: 'Activity' },
-        { href: '/profile',   icon: UserCircle,      label: 'Profile' },
-      ].map(({ href, icon: Icon, label }) => (
-        <Link
-          key={href}
-          href={href}
-          className="flex flex-col items-center gap-1 text-[--text-muted] hover:text-[--text-primary] transition-colors duration-150 p-2"
-        >
-          <Icon className="w-5 h-5" />
-          <span className="text-caption">{label}</span>
-        </Link>
-      ))}
     </nav>
   )
 }

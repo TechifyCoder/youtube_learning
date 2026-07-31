@@ -104,12 +104,12 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6">
+    <div className="space-y-5 md:space-y-6 pb-24 md:pb-6">
       <div>
-        <h1 className="font-heading font-bold text-display text-[--text-primary] mb-1">
+        <h1 className="font-heading font-bold text-2xl sm:text-3xl md:text-display text-[--text-primary] mb-1">
           Dashboard
         </h1>
-        <p className="text-body text-[--text-secondary]">
+        <p className="text-sm md:text-body text-[--text-secondary]">
           Welcome back! Here's what's happening with your courses.
         </p>
       </div>
@@ -122,9 +122,9 @@ export default async function DashboardPage() {
           </DashboardStaggerItem>
 
           {/* Middle Row: Bento Split */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <DashboardStaggerItem className="col-span-1 lg:col-span-2">
-              <div className="h-full bg-[--bg-card] rounded-3xl border border-[--border-subtle] p-6 shadow-card">
+              <div className="h-full bg-[--bg-card] rounded-2xl md:rounded-3xl border border-[--border-subtle] p-4 md:p-6 shadow-card">
                 <h3 className="text-label text-[--text-muted] uppercase tracking-wider mb-4">Activity Heatmap</h3>
                 <ActivityHeatmap />
               </div>
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Bottom Row: Bento Bottom (Streak + Time Tracker) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <DashboardStaggerItem className="col-span-1 lg:col-span-1">
               <StreakCard />
             </DashboardStaggerItem>
@@ -150,10 +150,10 @@ export default async function DashboardPage() {
 
           {/* My Courses Section */}
           <DashboardStaggerItem className="pt-4 border-t border-[--border-subtle]">
-            <h2 className="font-heading font-semibold text-xl text-[--text-primary] mb-4">
+            <h2 className="font-heading font-semibold text-lg md:text-xl text-[--text-primary] mb-4">
               My Courses
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {courseCards.map((card, idx) => (
                 <CourseCard key={card.playlist.id} data={card} index={idx} />
               ))}

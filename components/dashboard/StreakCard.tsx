@@ -82,7 +82,7 @@ export function StreakCard() {
                 key={currentStreak}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="text-4xl sm:text-5xl font-heading font-bold text-[--text-primary]"
+                className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-[--text-primary]"
               >
                 {currentStreak}
               </motion.span>
@@ -99,7 +99,7 @@ export function StreakCard() {
       </div>
 
       <div className="mt-4 pt-4 border-t border-white/5 relative z-10">
-        <div className="flex items-center justify-between relative">
+        <div className="flex items-center justify-between relative overflow-x-auto pb-1">
           {/* Background line connecting all */}
           <div className="absolute top-4 left-[7%] right-[7%] h-[2px] bg-white/10 -z-10" />
           

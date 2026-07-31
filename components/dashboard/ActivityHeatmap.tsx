@@ -148,9 +148,9 @@ export function ActivityHeatmap() {
 
   return (
     <GlassCard padding="md" variant="subtle" className="w-full overflow-hidden relative">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-        <div className="flex items-center gap-4">
-          <h3 className="font-heading font-semibold text-lg text-[--text-primary]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h3 className="font-heading font-semibold text-base md:text-lg text-[--text-primary]">
             Learning Activity
           </h3>
           
@@ -192,7 +192,7 @@ export function ActivityHeatmap() {
           </div>
 
         </div>
-        <div className="flex items-center gap-2 text-xs text-[--text-secondary]">
+        <div className="hidden sm:flex items-center gap-2 text-xs text-[--text-secondary]">
           <span>Less</span>
           <div className="w-2.5 h-2.5 rounded-sm bg-white/[0.04]" />
           <div className="w-2.5 h-2.5 rounded-sm bg-purple-900/60" />
